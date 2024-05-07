@@ -1,0 +1,264 @@
+/* -------------------------
+[File Information]
+Author: Mystichunterz#1922
+------------------------- */
+
+console.log("----------------------");
+console.log("classes > Bot.js");
+console.log("----------------------");
+
+//----------------------
+//  imports
+//----------------------
+import { Client, Collection } from "discord.js";
+import path from "path";
+import { fileURLToPath, pathToFileURL } from "url";
+import fs from "fs";
+
+//----------------------
+//  config
+//----------------------
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+function getFiles(directory) {
+  return fs.readdirSync(directory).filter((file) => file.endsWith(".js"));
+}
+
+//----------------------
+//  main
+//----------------------
+class Bot extends Client {
+  constructor(args) {
+    super(args);
+
+    this.prefix = args.prefix;
+    this.commands = new Collection();
+    this.aliases = new Collection();
+    this.cooldowns = new Collection();
+    this.events = new Collection();
+    this.responses = new Collection();
+    this.buttons = new Collection();
+  }
+
+  async start(token) {
+    await super.login(token);
+  
+    this.once('ready', () => {
+      this.guilds.cache.get('1232307090614128650').commands.create({
+        name: 'speak',
+        description: 'Do the speaky-speak',
+        options: [{
+          name: 'message',
+          type: 3,
+          description: 'The message to speak',
+          required: true,
+        }],
+      });
+    });
+  }
+
+  loadEvents() {
+    getFiles(`${(this, __dirname)}/../events/`).forEach(
+      async (eventFileName) => {
+        const eventName = eventFileName.split(".js")[0];
+        const Event = (
+          await import(
+            pathToFileURL(
+              `${(this, __dirname)}/../events/${eventFileName}`
+            ).toString()
+          )
+        ).default;
+        const event = new Event(this, eventName);
+        event.startListener();
+        this.events.set(eventName, event);
+      }
+    );
+  }
+
+  loadCommands() {
+    getFiles(`${(this, __dirname)}/../commands/`).forEach(
+      async (commandFileName) => {
+        const commandName = commandFileName.split(".js")[0];
+        const Command = (
+          await import(
+            pathToFileURL(
+              `${(this, __dirname)}/../commands/${commandFileName}`
+            ).toString()
+          )
+        ).default;
+        const command = new Command(this, commandName);
+        this.commands.set(commandName, command);
+        if (command.aliases)
+          command.aliases.forEach((alias) =>
+            this.aliases.set(alias, commandName)
+          );
+      }
+    );
+  }
+
+  getCommand(commandName) {
+    let command = this.commands.get(commandName);
+    if (!command) command = this.commands.get(this.aliases.get(commandName));
+    return command;
+  }
+
+  loadResponses() {
+    getFiles(`${(this, __dirname)}/../responses/`).forEach(
+      async (responseFileName) => {
+        const responseName = responseFileName.split(".js")[0];
+        const Response = (
+          await import(
+            pathToFileURL(
+              `${(this, __dirname)}/../responses/${responseFileName}`
+            ).toString()
+          )
+        ).default;
+        const response = new Response(this, responseName);
+        this.responses.set(responseName, response);
+        if (response.aliases)
+          response.aliases.forEach((alias) =>
+            this.aliases.set(alias, responseName)
+          );
+      }
+    );
+
+    getFiles(`${(this, __dirname)}/../responses/server_resources/`).forEach(
+      async (responseFileName) => {
+        const responseName = responseFileName.split(".js")[0];
+        const Response = (
+          await import(
+            pathToFileURL(
+              `${(this, __dirname)
+              }/../responses/server_resources/${responseFileName}`
+            ).toString()
+          )
+        ).default;
+        const response = new Response(this, responseName);
+        this.responses.set(responseName, response);
+        if (response.aliases)
+          response.aliases.forEach((alias) =>
+            this.aliases.set(alias, responseName)
+          );
+      }
+    );
+
+    getFiles(`${(this, __dirname)}/../responses/fun_and_games/`).forEach(
+      async (responseFileName) => {
+        const responseName = responseFileName.split(".js")[0];
+        const Response = (
+          await import(
+            pathToFileURL(
+              `${(this, __dirname)
+              }/../responses/fun_and_games/${responseFileName}`
+            ).toString()
+          )
+        ).default;
+        const response = new Response(this, responseName);
+        this.responses.set(responseName, response);
+        if (response.aliases)
+          response.aliases.forEach((alias) =>
+            this.aliases.set(alias, responseName)
+          );
+      }
+    );
+
+    getFiles(`${(this, __dirname)}/../responses/reaction_roles/`).forEach(
+      async (responseFileName) => {
+        const responseName = responseFileName.split(".js")[0];
+        const Response = (
+          await import(
+            pathToFileURL(
+              `${(this, __dirname)
+              }/../responses/reaction_roles/${responseFileName}`
+            ).toString()
+          )
+        ).default;
+        const response = new Response(this, responseName);
+        this.responses.set(responseName, response);
+        if (response.aliases)
+          response.aliases.forEach((alias) =>
+            this.aliases.set(alias, responseName)
+          );
+      }
+    );
+
+    getFiles(`${(this, __dirname)}/../responses/server_utility/`).forEach(
+      async (responseFileName) => {
+        const responseName = responseFileName.split(".js")[0];
+        const Response = (
+          await import(
+            pathToFileURL(
+              `${(this, __dirname)
+              }/../responses/server_utility/${responseFileName}`
+            ).toString()
+          )
+        ).default;
+        const response = new Response(this, responseName);
+        this.responses.set(responseName, response);
+        if (response.aliases)
+          response.aliases.forEach((alias) =>
+            this.aliases.set(alias, responseName)
+          );
+      }
+    );
+  }
+
+  getResponse(responseName) {
+    let response = this.responses.get(this.aliases.get(responseName));
+    return response;
+  }
+
+  loadButtons() {
+    getFiles(`${(this, __dirname)}/../buttons/`).forEach(
+      async (buttonFileName) => {
+        const buttonName = buttonFileName.split(".js")[0];
+        const Button = (
+          await import(
+            pathToFileURL(
+              `${(this, __dirname)}/../buttons/${buttonFileName}`
+            ).toString()
+          )
+        ).default;
+        const button = new Button(this, buttonName);
+        this.buttons.set(buttonName, button);
+      }
+    );
+
+    getFiles(`${(this, __dirname)}/../buttons/karaokequeue/`).forEach(
+      async (buttonFileName) => {
+        const buttonName = buttonFileName.split(".js")[0];
+        const Button = (
+          await import(
+            pathToFileURL(
+              `${(this, __dirname)}/../buttons/karaokequeue/${buttonFileName}`
+            ).toString()
+          )
+        ).default;
+        const button = new Button(this, buttonName);
+        this.buttons.set(buttonName, button);
+      }
+    );
+
+    getFiles(`${(this, __dirname)}/../buttons/roles/`).forEach(
+      async (buttonFileName) => {
+        const buttonName = buttonFileName.split(".js")[0];
+        const Button = (
+          await import(
+            pathToFileURL(
+              `${(this, __dirname)}/../buttons/roles/${buttonFileName}`
+            ).toString()
+          )
+        ).default;
+        const button = new Button(this, buttonName);
+        this.buttons.set(buttonName, button);
+      }
+    );
+  }
+
+  getButton(buttonName) {
+    let button = this.buttons.get(buttonName);
+    return button;
+  }
+}
+
+export default Bot;
